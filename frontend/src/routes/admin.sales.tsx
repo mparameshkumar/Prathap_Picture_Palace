@@ -56,47 +56,47 @@ function SalesPage() {
     setLoading(true);
     try {
       let salesData: any[] = [];
-      
+
       if (useDateRange) {
         // Fetch sales data for the selected date range
-        const reportResponse = await api.get("/api/sales/sales-report", { 
-          params: { 
-            canteen_id: canteenId, 
+        const reportResponse = await api.get("/api/sales/sales-report", {
+          params: {
+            canteen_id: canteenId,
             date_from: dateFrom,
             date_to: dateTo,
             show_type: showFilter !== "all" ? showFilter : undefined,
             item_name: itemFilter !== "all" ? itemFilter : undefined
-          } 
+          }
         }).catch(() => ({ data: [] }));
-        
+
         salesData = Array.isArray(reportResponse.data) ? reportResponse.data : [];
       } else {
         // Always fetch today's sales for the report
-        const dailySales = await api.get("/api/sales/daily-sales", { 
-          params: { 
-            canteen_id: canteenId, 
-            sale_date: today 
-          } 
+        const dailySales = await api.get("/api/sales/daily-sales", {
+          params: {
+            canteen_id: canteenId,
+            sale_date: today
+          }
         }).catch(() => ({ data: [] }));
-        
+
         salesData = Array.isArray(dailySales.data) ? dailySales.data : [];
       }
-      
+
       const [st] = await Promise.all([
-        api.get("/api/stock", { params: { canteen_id: canteenId } }).catch(() => ({ data: [] }))
+        api.get("/api/stock/", { params: { canteen_id: canteenId } }).catch(() => ({ data: [] }))
       ]);
-      
+
       // Calculate stats from detailed sales data
       const totalRevenue = salesData.reduce((sum: number, item: any) => sum + (item.total_cost || 0), 0);
       const totalItems = salesData.reduce((sum: number, item: any) => sum + (item.quantity_sold || 0), 0);
       const totalOrders = new Set(salesData.map((item: any) => item.show_type)).size;
-      
+
       setStats({
         revenue: totalRevenue,
         items: totalItems,
         orders: totalOrders,
       });
-      
+
       setReport(salesData);
       setStock(Array.isArray(st.data) ? st.data : []);
     } catch (error) {
@@ -147,15 +147,15 @@ function SalesPage() {
     try {
       const from = dateFrom || thirtyDaysAgo;
       const to = dateTo || today;
-      
+
       // Use current filtered report data
       const salesData = filteredReport;
-      
+
       if (salesData.length === 0) {
         toast.error("No data to export");
         return;
       }
-      
+
       // Create CSV content
       const headers = ["SL No", "Date", "Theatre", "Show Type", "Item Name", "Price", "Quantity", "Total Revenue"];
       const csvContent = [
@@ -171,7 +171,7 @@ function SalesPage() {
           `₹${(sale.total_cost || sale.total_amount || 0).toFixed(2)}`
         ].map(field => `"${field}"`).join(","))
       ].join("\n");
-      
+
       // Create and download file
       const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
       const link = document.createElement("a");
@@ -182,7 +182,7 @@ function SalesPage() {
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
-      
+
       toast.success("Sales data exported successfully");
     } catch (error: any) {
       toast.error(error?.response?.data?.detail || "Failed to export data");
@@ -197,22 +197,22 @@ function SalesPage() {
     if (dateFrom !== today || dateTo !== today) {
       return report;
     }
-    
+
     // Otherwise, apply client-side filtering
     let filtered = [...report];
-    
+
     if (showFilter !== "all") {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         (item.show_type || "").toLowerCase() === showFilter.toLowerCase()
       );
     }
-    
+
     if (itemFilter !== "all") {
-      filtered = filtered.filter(item => 
+      filtered = filtered.filter(item =>
         (item.item_name || "").toLowerCase().includes(itemFilter.toLowerCase())
       );
     }
-    
+
     return filtered;
   }, [report, showFilter, itemFilter, dateFrom, dateTo, today]);
 
@@ -256,25 +256,25 @@ function SalesPage() {
             Sales Report
           </button>
         </div>
-        
+
         {tab === "report" && (
           <div className="flex gap-2">
-            <Button 
-              variant="outline" 
-              size="sm" 
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => load(dateFrom !== today || dateTo !== today)}
               disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} /> 
+              <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button 
-              variant="hero" 
-              size="sm" 
+            <Button
+              variant="hero"
+              size="sm"
               onClick={exportToExcel}
               disabled={exporting || loading}
             >
-              <Download className={`h-4 w-4 mr-1 ${exporting ? 'animate-spin' : ''}`} /> 
+              <Download className={`h-4 w-4 mr-1 ${exporting ? 'animate-spin' : ''}`} />
               Export CSV
             </Button>
           </div>
@@ -325,28 +325,28 @@ function SalesPage() {
                 <Filter className="h-4 w-4 text-primary" />
                 <h3 className="font-semibold">Filters</h3>
               </div>
-              
+
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">From Date</Label>
-                  <Input 
-                    type="date" 
-                    value={dateFrom} 
+                  <Input
+                    type="date"
+                    value={dateFrom}
                     onChange={(e) => setDateFrom(e.target.value)}
                     max={today}
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">To Date</Label>
-                  <Input 
-                    type="date" 
-                    value={dateTo} 
+                  <Input
+                    type="date"
+                    value={dateTo}
                     onChange={(e) => setDateTo(e.target.value)}
                     max={today}
                   />
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Show Type</Label>
                   <Select value={showFilter} onValueChange={setShowFilter}>
@@ -361,7 +361,7 @@ function SalesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Item</Label>
                   <Select value={itemFilter} onValueChange={setItemFilter}>
@@ -376,13 +376,13 @@ function SalesPage() {
                     </SelectContent>
                   </Select>
                 </div>
-                
+
                 <div className="space-y-1.5">
                   <Label className="text-xs text-muted-foreground">Quick Range</Label>
                   <div className="flex gap-1">
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         setDateFrom(today);
                         setDateTo(today);
@@ -391,9 +391,9 @@ function SalesPage() {
                     >
                       Today
                     </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
+                    <Button
+                      variant="outline"
+                      size="sm"
                       onClick={() => {
                         setDateFrom(thirtyDaysAgo);
                         setDateTo(today);
@@ -406,16 +406,16 @@ function SalesPage() {
                 </div>
               </div>
             </div>
-            
+
             {/* Report Table */}
             {loading ? (
               <div className="flex items-center justify-center py-16 text-muted-foreground">
                 <Loader2 className="h-5 w-5 animate-spin mr-2" /> Loading sales data...
               </div>
             ) : filteredReport.length === 0 ? (
-              <EmptyState 
-                title="No sales data found" 
-                hint="Try adjusting your filters or date range to see sales data." 
+              <EmptyState
+                title="No sales data found"
+                hint="Try adjusting your filters or date range to see sales data."
               />
             ) : (
               <div className="rounded-2xl bg-gradient-card border border-border/60 overflow-hidden">
@@ -427,7 +427,7 @@ function SalesPage() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="bg-muted/50">

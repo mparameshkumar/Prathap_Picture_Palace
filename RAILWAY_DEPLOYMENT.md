@@ -6,16 +6,23 @@ This guide outlines how to deploy the FastAPI backend of the **Theatre Canteen M
 
 ## 🛠️ What We Configured
 
+### 1. Python Runtime Specification (`runtime.txt`)
+We created `runtime.txt` files both at the root of the project and inside the `/backend` folder to enforce building the application with **Python 3.11.9**:
+```
+python-3.11.9
+```
+
+### 2. Procfile Configurations
 We have set up two `Procfile` configurations to support different deployment architectures on Railway:
 
-### 1. Root-Level Deployment (`/Procfile`)
+#### A. Root-Level Deployment (`/Procfile`)
 If you deploy the entire repository root to Railway, Railway will run the app using:
 ```yaml
 web: uvicorn app.main:app --host 0.0.0.0 --port $PORT --app-dir backend
 ```
 * **How it works:** The `--app-dir backend` flag tells Uvicorn that the `app` package is inside the `/backend` folder.
 
-### 2. Subdirectory Deployment (`/backend/Procfile`)
+#### B. Subdirectory Deployment (`/backend/Procfile`)
 If you set the **Root Directory** setting in your Railway service settings to `/backend` (highly recommended for a clean monorepo setup), Railway will run the app using:
 ```yaml
 web: uvicorn app.main:app --host 0.0.0.0 --port $PORT

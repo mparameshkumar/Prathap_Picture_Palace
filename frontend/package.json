@@ -9,7 +9,7 @@
     "build:dev": "vite build --mode development",
     "lint": "eslint .",
     "format": "prettier --write .",
-    "start": "serve -s dist -l $PORT"
+    "start": "serve -s dist/client -l $PORT"
   },
   "dependencies": {
     "@cloudflare/vite-plugin": "^1.25.5",

@@ -40,7 +40,7 @@ function StockPage() {
   const load = () => {
     setLoading(true);
     api
-      .get("/api/stock", { params: { canteen_id: canteenId } })
+      .get("/api/stock/", { params: { canteen_id: canteenId } })
       .then((r) => {
         const items = Array.isArray(r.data) ? r.data : [];
         // Sort items alphabetically by name (case-insensitive)
@@ -59,7 +59,7 @@ function StockPage() {
   const addItem = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await api.post("/api/stock", { ...form, canteen_id: canteenId });
+      await api.post("/api/stock/", { ...form, canteen_id: canteenId });
       toast.success("Item added");
       setForm({ item_name: "", price: 0, quantity: 0 });
       setShowAdd(false);
